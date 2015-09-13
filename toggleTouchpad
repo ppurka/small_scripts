@@ -1,0 +1,31 @@
+#!/bin/bash
+
+case "$1" in
+    "")     if synclient | grep -qE 'TouchpadOff.*1'; then
+                synclient TouchpadOff=0
+                exec displaymessage --center --title \
+                    "Touchpad" --passive "Touchpad has been turned on"
+            else
+                synclient TouchpadOff=1
+                exec displaymessage --center --title \
+                    "Touchpad" --passive "Touchpad has been turned off"
+            fi ;;
+    "tap")  if synclient | grep -qE 'TapButton1.*1'; then
+                if pgrep -x "syndaemon" >& /dev/null; then
+                    killall -u $USER "syndaemon"
+                fi
+                synclient TapButton1=0
+                exec displaymessage --center \
+                    --title "Touchpad Click" \
+                    --passive "Touchpad left click has been turned off"
+            else
+                if ! pgrep -x "syndaemon" >& /dev/null; then
+                    syndaemon -d -i 2 -m 1000
+                fi
+                synclient TapButton1=1
+                exec displaymessage --center \
+                    --title "Touchpad Click" \
+                    --passive "Touchpad left click has been turned on"
+            fi ;;
+esac
+
