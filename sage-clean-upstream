@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+cd "$SAGE_ROOT"/build/pkgs
+upstream_dir="$SAGE_ROOT"/upstream
+
+for pkg in *; do
+    f=$pkg/package-version.txt
+    if [[ ! -f "$f" ]]; then
+        echo >&2 "ERROR: Could not determine version for $pkg. Skipping."
+        continue
+    fi
+
+    # Remove the patch level from the package version
+    ver=$( cat "$f" )
+    if [[ "$ver" =~ .*\.p[0-9]+ ]]; then
+        ver="${ver%.p*}"
+    fi
+    # If version is empty, then don't even bother with this package
+    if [[ -z "$ver" ]]; then
+        echo >&2 "WARNING: $pkg does not have any version. Skipping."
+        continue
+    fi
+    pkg_ver="$pkg-$ver"
+
+    # We will abort if any command below fails
+    set -e
+    for tarball in "$upstream_dir"/$pkg-*; do
+        if [[ ! -f "$tarball" ]]; then
+            # Some packages do not have tarballs in $SAGE_ROOT/upstream/
+            # but the variable $tarball still contains some string
+            continue
+        fi
+
+        # All tarballs are either *.tar, *.tar.bz2, *.tar.gz or *.spkg
+        if [[ "$tarball" != "$upstream_dir/$pkg_ver".tar* && \
+              "$tarball" != "$upstream_dir/$pkg_ver".spkg ]]; then
+            echo "Deleting $tarball"
+            if [[ "$1" == "--pretend" ]]; then
+                echo "Would have run: rm $tarball"
+            else
+                rm "$tarball"
+            fi
+        fi
+    done
+    set +e
+done
