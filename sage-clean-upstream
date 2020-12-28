@@ -33,7 +33,8 @@ for pkg in *; do
 
         # All tarballs are either *.tar, *.tar.bz2, *.tar.gz or *.spkg
         if [[ "$tarball" != "$upstream_dir/$pkg_ver".tar* && \
-              "$tarball" != "$upstream_dir/$pkg_ver".spkg ]]; then
+              "$tarball" != "$upstream_dir/$pkg_ver".spkg && \
+              "$tarball" != "$upstream_dir/$pkg_ver".zip ]]; then
             echo "Deleting $tarball"
             if [[ "$1" == "--pretend" ]]; then
                 echo "Would have run: rm $tarball"
